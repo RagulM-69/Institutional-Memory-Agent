@@ -535,7 +535,7 @@ export default function KnowledgeHub() {
       {/* Modal: Create Knowledge Note */}
       {isCreateNoteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/40 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-xl border border-neutral-200 p-6 max-w-lg w-full shadow-lg space-y-4 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-xl border border-neutral-200 p-5 sm:p-6 max-w-lg w-full shadow-lg space-y-4 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
               <h3 className="text-sm font-semibold text-neutral-900 flex items-center gap-2">
                 <FileText className="w-4 h-4 text-neutral-700" />
@@ -625,7 +625,7 @@ export default function KnowledgeHub() {
       {/* Modal: Ingest Meeting Transcript */}
       {isIngestMeetingModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/40 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-xl border border-neutral-200 p-6 max-w-lg w-full shadow-lg space-y-4 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-xl border border-neutral-200 p-5 sm:p-6 max-w-lg w-full shadow-lg space-y-4 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
               <h3 className="text-sm font-semibold text-neutral-900 flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-neutral-700" />

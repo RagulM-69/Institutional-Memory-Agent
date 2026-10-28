@@ -203,11 +203,11 @@ export function AppSidebar({
         />
       )}
 
-      {/* SINGLE UNIFIED SIDEBAR: Locked, stationary, smoothly expands from w-16 to w-64 */}
+      {/* SINGLE UNIFIED SIDEBAR: Responsive drawer on mobile, smoothly expandable on desktop */}
       <aside
         className={`fixed top-0 bottom-0 left-0 z-40 h-screen bg-white border-r border-neutral-200/90 flex flex-col justify-between py-4 select-none transition-all duration-300 ease-in-out lg:sticky lg:top-0 lg:translate-x-0 lg:h-screen lg:self-start lg:shrink-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        } ${isExpanded ? "w-64 px-4" : "w-16 px-2"}`}
+        } w-64 max-w-[80vw] px-4 ${isExpanded ? "lg:w-64 lg:px-4" : "lg:w-16 lg:px-2"}`}
       >
         {/* ======================================================== */}
         {/* TOP SECTION: BRAND LOGO + ORG HEADER                     */}
@@ -215,95 +215,90 @@ export function AppSidebar({
         <div className="flex flex-col gap-6 w-full">
           {/* Header Row */}
           <div className="flex items-center justify-between w-full">
-            {isExpanded ? (
-              <div className="flex items-center justify-between w-full min-w-0">
-                <Link
-                  href="/"
-                  className="flex items-center gap-3 min-w-0 group"
-                  onClick={onClose}
-                >
-                  <CloverBrandLogo className="w-8 h-8 shrink-0 group-hover:scale-105 transition-transform" />
-                  <div className="min-w-0">
-                    <h2 className="text-sm font-bold text-neutral-900 truncate tracking-tight leading-tight">
-                      {org?.name || "Acme Engineering"}
-                    </h2>
-                    <p className="text-[11px] text-neutral-400 font-mono truncate leading-normal">
-                      {org ? `org: ${org.slug}` : "org: acme-engineering"}
-                    </p>
-                  </div>
-                </Link>
+            {/* Mobile Header (Always Expanded with Close Button) */}
+            <div className="flex lg:hidden items-center justify-between w-full min-w-0">
+              <Link
+                href="/"
+                className="flex items-center gap-3 min-w-0 group"
+                onClick={onClose}
+              >
+                <CloverBrandLogo className="w-8 h-8 shrink-0 group-hover:scale-105 transition-transform" />
+                <div className="min-w-0">
+                  <h2 className="text-sm font-bold text-neutral-900 truncate tracking-tight leading-tight">
+                    {org?.name || "Acme Engineering"}
+                  </h2>
+                  <p className="text-[11px] text-neutral-400 font-mono truncate leading-normal">
+                    {org ? `org: ${org.slug}` : "org: acme-engineering"}
+                  </p>
+                </div>
+              </Link>
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors shrink-0 ml-1"
+                title="Close drawer"
+                aria-label="Close drawer"
+              >
+                <X className="w-5 h-5 stroke-[2]" />
+              </button>
+            </div>
 
-                <button
-                  type="button"
-                  onClick={toggleExpand}
-                  className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors shrink-0 ml-1"
-                  title="Collapse sidebar"
-                  aria-label="Collapse sidebar"
-                >
-                  <ChevronLeft className="w-4 h-4 stroke-[2]" />
-                </button>
-              </div>
-            ) : (
-              <div className="w-full flex items-center justify-center">
-                <button
-                  type="button"
-                  onClick={toggleExpand}
-                  className="p-1 rounded-xl hover:bg-neutral-100 transition-all hover:scale-105 active:scale-95 focus:outline-hidden"
-                  title="Expand sidebar"
-                  aria-label="Expand sidebar"
-                >
-                  <CloverBrandLogo className="w-8 h-8 cursor-pointer" />
-                </button>
-              </div>
-            )}
+            {/* Desktop Header: Expanded view */}
+            <div className={`hidden ${isExpanded ? "lg:flex" : "lg:hidden"} items-center justify-between w-full min-w-0`}>
+              <Link
+                href="/"
+                className="flex items-center gap-3 min-w-0 group"
+                onClick={onClose}
+              >
+                <CloverBrandLogo className="w-8 h-8 shrink-0 group-hover:scale-105 transition-transform" />
+                <div className="min-w-0">
+                  <h2 className="text-sm font-bold text-neutral-900 truncate tracking-tight leading-tight">
+                    {org?.name || "Acme Engineering"}
+                  </h2>
+                  <p className="text-[11px] text-neutral-400 font-mono truncate leading-normal">
+                    {org ? `org: ${org.slug}` : "org: acme-engineering"}
+                  </p>
+                </div>
+              </Link>
+
+              <button
+                type="button"
+                onClick={toggleExpand}
+                className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors shrink-0 ml-1"
+                title="Collapse sidebar"
+                aria-label="Collapse sidebar"
+              >
+                <ChevronLeft className="w-4 h-4 stroke-[2]" />
+              </button>
+            </div>
+
+            {/* Desktop Header: Collapsed icon-only view */}
+            <div className={`hidden ${!isExpanded ? "lg:flex" : "lg:hidden"} w-full items-center justify-center`}>
+              <button
+                type="button"
+                onClick={toggleExpand}
+                className="p-1 rounded-xl hover:bg-neutral-100 transition-all hover:scale-105 active:scale-95 focus:outline-hidden"
+                title="Expand sidebar"
+                aria-label="Expand sidebar"
+              >
+                <CloverBrandLogo className="w-8 h-8 cursor-pointer" />
+              </button>
+            </div>
           </div>
 
           {/* ======================================================== */}
           {/* MIDDLE: SINGLE NAVIGATION LIST                           */}
           {/* ======================================================== */}
           <nav className="flex flex-col gap-1 w-full">
-            {isExpanded && (
-              <span className="px-2 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 block mb-1">
-                Workspace
-              </span>
-            )}
+            <span className={`px-2 text-[10px] font-semibold uppercase tracking-wider text-neutral-400 block mb-1 ${
+              isExpanded ? "block" : "block lg:hidden"
+            }`}>
+              Workspace
+            </span>
 
             {navItems.map((item) => {
               const Icon = item.icon;
               const isHovered = hoveredItem === item.name;
-
-              if (!item.enabled) {
-                return (
-                  <div
-                    key={item.name}
-                    onMouseEnter={() => setHoveredItem(item.name)}
-                    onMouseLeave={() => setHoveredItem(null)}
-                    className={`relative rounded-xl text-neutral-300 cursor-not-allowed flex items-center ${
-                      isExpanded ? "px-3 py-2.5 gap-3" : "p-2.5 justify-center"
-                    }`}
-                  >
-                    <Icon className="w-5 h-5 shrink-0" />
-                    {isExpanded && (
-                      <div className="flex items-center justify-between flex-1 min-w-0">
-                        <span className="text-xs font-medium text-neutral-400 truncate">{item.name}</span>
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-400 font-mono">
-                          {item.badge}
-                        </span>
-                      </div>
-                    )}
-
-                    {!isExpanded && isHovered && (
-                      <div className="absolute left-full ml-3 px-3 py-1.5 bg-neutral-900 text-white text-xs font-medium rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none flex items-center gap-1.5 animate-in fade-in zoom-in-95 duration-150">
-                        <span>{item.name}</span>
-                        <span className="text-[9px] px-1 py-0.2 bg-neutral-800 rounded text-neutral-400 font-mono">
-                          {item.badge}
-                        </span>
-                        <span className="absolute -left-1 top-1/2 -translate-y-1/2 border-y-4 border-y-transparent border-r-4 border-r-neutral-900" />
-                      </div>
-                    )}
-                  </div>
-                );
-              }
 
               return (
                 <div
@@ -316,7 +311,9 @@ export function AppSidebar({
                     href={item.href}
                     onClick={onClose}
                     className={`rounded-xl transition-all flex items-center relative ${
-                      isExpanded ? "px-3 py-2.5 gap-3" : "p-2.5 justify-center"
+                      isExpanded
+                        ? "px-3 py-2.5 gap-3"
+                        : "px-3 py-2.5 gap-3 lg:p-2.5 lg:justify-center"
                     } ${
                       item.isActive
                         ? "bg-neutral-100 text-neutral-900 shadow-2xs font-semibold"
@@ -329,23 +326,20 @@ export function AppSidebar({
                       }`}
                     />
 
-                    {isExpanded && (
-                      <div className="flex items-center justify-between flex-1 min-w-0">
-                        <span className="text-xs truncate">{item.name}</span>
-                        {item.isActive && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                        )}
-                      </div>
-                    )}
-
-                    {!isExpanded && item.isActive && (
-                      <span className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-4 bg-emerald-500 rounded-r-full" />
-                    )}
+                    {/* Label: Always visible on mobile, toggleable on desktop */}
+                    <div className={`items-center justify-between flex-1 min-w-0 ${
+                      isExpanded ? "flex" : "flex lg:hidden"
+                    }`}>
+                      <span className="text-xs truncate">{item.name}</span>
+                      {item.isActive && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                      )}
+                    </div>
                   </Link>
 
-                  {/* Tooltip when collapsed */}
+                  {/* Desktop Hover Tooltip (Only when collapsed on desktop) */}
                   {!isExpanded && isHovered && (
-                    <div className="absolute left-full ml-3 px-3 py-1.5 bg-neutral-900 text-white text-xs font-medium rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none flex items-center gap-1.5 animate-in fade-in zoom-in-95 duration-150">
+                    <div className="hidden lg:flex absolute left-full ml-3 px-3 py-1.5 bg-neutral-900 text-white text-xs font-medium rounded-lg shadow-xl whitespace-nowrap z-50 pointer-events-none items-center gap-1.5 animate-in fade-in zoom-in-95 duration-150">
                       <span>{item.name}</span>
                       <span className="absolute -left-1 top-1/2 -translate-y-1/2 border-y-4 border-y-transparent border-r-4 border-r-neutral-900" />
                     </div>
@@ -360,11 +354,11 @@ export function AppSidebar({
         {/* BOTTOM SECTION: EXPAND TOGGLE + USER AVATAR & FLYOUT     */}
         {/* ======================================================== */}
         <div className="flex flex-col gap-2 w-full pt-2 border-t border-neutral-100 relative">
-          {/* Expand / Collapse Button */}
+          {/* Expand / Collapse Button (Desktop Only) */}
           <button
             type="button"
             onClick={toggleExpand}
-            className={`rounded-xl text-neutral-400 hover:text-neutral-800 hover:bg-neutral-50 transition-colors flex items-center ${
+            className={`hidden lg:flex rounded-xl text-neutral-400 hover:text-neutral-800 hover:bg-neutral-50 transition-colors items-center ${
               isExpanded ? "px-3 py-2 gap-2 text-xs font-medium" : "p-2.5 justify-center w-full"
             }`}
             title={isExpanded ? "Collapse Sidebar" : "Expand Sidebar"}
@@ -387,7 +381,7 @@ export function AppSidebar({
               className={`rounded-xl transition-all flex items-center focus:outline-hidden w-full ${
                 isExpanded
                   ? "p-2 gap-3 hover:bg-neutral-50 border border-transparent hover:border-neutral-200/60"
-                  : "p-1 justify-center hover:scale-105"
+                  : "p-2 gap-3 lg:p-1 lg:justify-center hover:scale-105"
               }`}
               title="View User & Organization Profile"
               aria-label="User Profile"
@@ -396,26 +390,27 @@ export function AppSidebar({
                 {initials}
               </div>
 
-              {isExpanded && (
-                <div className="flex items-center justify-between flex-1 min-w-0 text-left">
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-neutral-900 truncate">
-                      {displayName}
-                    </p>
-                    <p className="text-[10px] text-neutral-400 font-mono truncate">
-                      {userRole}
-                    </p>
-                  </div>
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" title="Active Session" />
+              {/* User info: always visible on mobile, toggleable on desktop */}
+              <div className={`items-center justify-between flex-1 min-w-0 text-left ${
+                isExpanded ? "flex" : "flex lg:hidden"
+              }`}>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-neutral-900 truncate">
+                    {displayName}
+                  </p>
+                  <p className="text-[10px] text-neutral-400 font-mono truncate">
+                    {userRole}
+                  </p>
                 </div>
-              )}
+                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" title="Active Session" />
+              </div>
             </button>
 
             {/* FLOATING USER PROFILE FLYOUT POPOVER CARD */}
             {isUserMenuOpen && (
               <div
                 ref={userMenuRef}
-                className="absolute left-full bottom-0 ml-3 w-80 rounded-2xl bg-white border border-neutral-200/90 shadow-2xl p-5 z-50 space-y-4 animate-in fade-in zoom-in-95 duration-150 text-neutral-900 select-text"
+                className="fixed inset-x-4 bottom-4 lg:absolute lg:inset-x-auto lg:left-full lg:bottom-0 lg:ml-3 w-auto lg:w-80 rounded-2xl bg-white border border-neutral-200/90 shadow-2xl p-4 sm:p-5 z-50 space-y-4 animate-in fade-in zoom-in-95 duration-150 text-neutral-900 select-text"
               >
                 {/* Popover Header */}
                 <div className="flex items-start justify-between gap-3 pb-3 border-b border-neutral-100">

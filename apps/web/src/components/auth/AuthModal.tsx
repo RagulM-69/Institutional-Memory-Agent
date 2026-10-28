@@ -100,7 +100,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="w-full max-w-sm rounded-xl border border-neutral-200 bg-white p-6 shadow-xl space-y-4">
+      <div className="w-full max-w-sm max-h-[92vh] overflow-y-auto rounded-xl border border-neutral-200 bg-white p-5 sm:p-6 shadow-xl space-y-4">
         <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-md bg-neutral-900 text-white flex items-center justify-center">

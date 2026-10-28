@@ -242,10 +242,10 @@ export default function SettingsPage() {
           )}
 
           {/* Navigation Tabs */}
-          <div className="flex border-b border-neutral-200 gap-6 text-xs font-medium">
+          <div className="flex border-b border-neutral-200 gap-4 sm:gap-6 text-xs font-medium overflow-x-auto whitespace-nowrap scrollbar-none pb-0.5">
             <button
               onClick={() => setActiveTab("general")}
-              className={`pb-2.5 flex items-center gap-2 border-b-2 transition-colors ${
+              className={`shrink-0 pb-2.5 flex items-center gap-2 border-b-2 transition-colors ${
                 activeTab === "general"
                   ? "border-neutral-900 text-neutral-900 font-semibold"
                   : "border-transparent text-neutral-500 hover:text-neutral-700"
@@ -257,7 +257,7 @@ export default function SettingsPage() {
 
             <button
               onClick={() => setActiveTab("agent")}
-              className={`pb-2.5 flex items-center gap-2 border-b-2 transition-colors ${
+              className={`shrink-0 pb-2.5 flex items-center gap-2 border-b-2 transition-colors ${
                 activeTab === "agent"
                   ? "border-neutral-900 text-neutral-900 font-semibold"
                   : "border-transparent text-neutral-500 hover:text-neutral-700"
@@ -269,7 +269,7 @@ export default function SettingsPage() {
 
             <button
               onClick={() => setActiveTab("vector")}
-              className={`pb-2.5 flex items-center gap-2 border-b-2 transition-colors ${
+              className={`shrink-0 pb-2.5 flex items-center gap-2 border-b-2 transition-colors ${
                 activeTab === "vector"
                   ? "border-neutral-900 text-neutral-900 font-semibold"
                   : "border-transparent text-neutral-500 hover:text-neutral-700"
@@ -281,7 +281,7 @@ export default function SettingsPage() {
 
             <button
               onClick={() => setActiveTab("security")}
-              className={`pb-2.5 flex items-center gap-2 border-b-2 transition-colors ${
+              className={`shrink-0 pb-2.5 flex items-center gap-2 border-b-2 transition-colors ${
                 activeTab === "security"
                   ? "border-neutral-900 text-neutral-900 font-semibold"
                   : "border-transparent text-neutral-500 hover:text-neutral-700"

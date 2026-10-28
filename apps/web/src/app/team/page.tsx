@@ -420,7 +420,7 @@ export default function TeamPage() {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={loadData}
                   disabled={isLoadingData || !jwt}
@@ -478,10 +478,10 @@ export default function TeamPage() {
             )}
 
             {/* Tabs */}
-            <div className="flex border-b border-neutral-200 gap-6 text-sm font-medium">
+            <div className="flex border-b border-neutral-200 gap-4 sm:gap-6 text-sm font-medium overflow-x-auto whitespace-nowrap scrollbar-none pb-0.5">
               <button
                 onClick={() => setActiveTab("members")}
-                className={`pb-3 flex items-center gap-2 border-b-2 transition-colors ${
+                className={`shrink-0 pb-3 flex items-center gap-2 border-b-2 transition-colors ${
                   activeTab === "members"
                     ? "border-neutral-900 text-neutral-900 font-semibold"
                     : "border-transparent text-neutral-500 hover:text-neutral-700"
@@ -494,7 +494,7 @@ export default function TeamPage() {
               {isAdmin && (
                 <button
                   onClick={() => setActiveTab("invitations")}
-                  className={`pb-3 flex items-center gap-2 border-b-2 transition-colors ${
+                  className={`shrink-0 pb-3 flex items-center gap-2 border-b-2 transition-colors ${
                     activeTab === "invitations"
                       ? "border-neutral-900 text-neutral-900 font-semibold"
                       : "border-transparent text-neutral-500 hover:text-neutral-700"
@@ -507,7 +507,7 @@ export default function TeamPage() {
 
               <button
                 onClick={() => setActiveTab("organizations")}
-                className={`pb-3 flex items-center gap-2 border-b-2 transition-colors ${
+                className={`shrink-0 pb-3 flex items-center gap-2 border-b-2 transition-colors ${
                   activeTab === "organizations"
                     ? "border-neutral-900 text-neutral-900 font-semibold"
                     : "border-transparent text-neutral-500 hover:text-neutral-700"
@@ -557,7 +557,7 @@ export default function TeamPage() {
                               {m.email ? m.email[0].toUpperCase() : "U"}
                             </div>
                             <div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex flex-wrap items-center gap-2">
                                 <span className="font-semibold text-sm text-neutral-900">
                                   {m.email || `User ${m.user_id.slice(0, 8)}...`}
                                 </span>
@@ -647,7 +647,7 @@ export default function TeamPage() {
                               <Mail className="w-4 h-4 text-neutral-400" />
                             </div>
                             <div>
-                              <div className="flex items-center gap-2">
+                              <div className="flex flex-wrap items-center gap-2">
                                 <span className="font-semibold text-sm text-neutral-900">
                                   {inv.email}
                                 </span>
@@ -661,7 +661,7 @@ export default function TeamPage() {
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             {inv.status === "pending" && !isExpired && (
                               <span className="px-2 py-0.5 text-xs font-semibold rounded bg-amber-50 text-amber-700 border border-amber-200">
                                 Pending
@@ -735,7 +735,7 @@ export default function TeamPage() {
                         }`}
                       >
                         <div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <span className="font-semibold text-sm text-neutral-900">
                               {o.name}
                             </span>
@@ -771,7 +771,7 @@ export default function TeamPage() {
         <div className="fixed inset-0 z-50 bg-neutral-900/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-xl max-w-md w-full border border-neutral-200 shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <div className="p-5 border-b border-neutral-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <UserPlus className="w-4 h-4 text-neutral-900" />
                 <h3 className="font-bold text-sm text-neutral-900">
                   {createdInviteResult ? "Invitation Generated" : "Invite New Member"}
@@ -802,7 +802,7 @@ export default function TeamPage() {
                   <label className="text-xs font-medium text-neutral-600 block mb-1">
                     Invitation Link (Single-use)
                   </label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <input
                       type="text"
                       readOnly
@@ -823,7 +823,7 @@ export default function TeamPage() {
                   <label className="text-xs font-medium text-neutral-600 block mb-1">
                     Backup Code (for manual lookup)
                   </label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <input
                       type="text"
                       readOnly
@@ -918,7 +918,7 @@ export default function TeamPage() {
         <div className="fixed inset-0 z-50 bg-neutral-900/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-xl max-w-md w-full border border-neutral-200 shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <div className="p-5 border-b border-neutral-100 flex items-center justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Building className="w-4 h-4 text-neutral-900" />
                 <h3 className="font-bold text-sm text-neutral-900">Create New Organization</h3>
               </div>
