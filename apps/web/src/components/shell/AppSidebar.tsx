@@ -20,6 +20,7 @@ import {
   Check,
   Building2,
   CheckCircle2,
+  LogIn,
 } from "lucide-react";
 import { ActiveOrganization, AuthenticatedUser } from "@/lib/types";
 import { getSupabase } from "@/lib/supabaseClient";
@@ -32,6 +33,7 @@ interface AppSidebarProps {
   org?: ActiveOrganization | null;
   user?: AuthenticatedUser | null;
   onSignOut?: () => void;
+  onSignIn?: () => void;
 }
 
 // 4-leaf clover brand logo
@@ -59,6 +61,7 @@ export function AppSidebar({
   org = null,
   user = null,
   onSignOut,
+  onSignIn,
 }: AppSidebarProps) {
   // Single sidebar: collapsed (w-16) or expanded (w-64)
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
@@ -185,13 +188,15 @@ export function AppSidebar({
   ];
 
   // Derived user display details
-  const displayEmail = user?.email || "owner@institutional-memory.local";
-  const displayName = displayEmail.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  const displayEmail = user?.email || "";
+  const displayName = displayEmail
+    ? displayEmail.split("@")[0].replace(/[._]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+    : "Guest User";
   const initials = org?.name
     ? org.name.substring(0, 2).toUpperCase()
     : displayName.substring(0, 2).toUpperCase();
 
-  const userRole = org?.role || user?.role || "admin";
+  const userRole = org?.role || user?.role || "guest";
 
   return (
     <>
@@ -225,10 +230,10 @@ export function AppSidebar({
                 <CloverBrandLogo className="w-8 h-8 shrink-0 group-hover:scale-105 transition-transform" />
                 <div className="min-w-0">
                   <h2 className="text-sm font-bold text-neutral-900 truncate tracking-tight leading-tight">
-                    {org?.name || "Acme Engineering"}
+                    {org?.name || (user ? "Personal Workspace" : "Institutional Memory")}
                   </h2>
                   <p className="text-[11px] text-neutral-400 font-mono truncate leading-normal">
-                    {org ? `org: ${org.slug}` : "org: acme-engineering"}
+                    {org ? `org: ${org.slug}` : (user ? "no active org" : "enterprise agent")}
                   </p>
                 </div>
               </Link>
@@ -253,10 +258,10 @@ export function AppSidebar({
                 <CloverBrandLogo className="w-8 h-8 shrink-0 group-hover:scale-105 transition-transform" />
                 <div className="min-w-0">
                   <h2 className="text-sm font-bold text-neutral-900 truncate tracking-tight leading-tight">
-                    {org?.name || "Acme Engineering"}
+                    {org?.name || (user ? "Personal Workspace" : "Institutional Memory")}
                   </h2>
                   <p className="text-[11px] text-neutral-400 font-mono truncate leading-normal">
-                    {org ? `org: ${org.slug}` : "org: acme-engineering"}
+                    {org ? `org: ${org.slug}` : (user ? "no active org" : "enterprise agent")}
                   </p>
                 </div>
               </Link>
@@ -373,151 +378,181 @@ export function AppSidebar({
             )}
           </button>
 
-          {/* USER PROFILE BUTTON (AVATAR CIRCLE) */}
-          <div className="relative w-full">
-            <button
-              type="button"
-              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-              className={`rounded-xl transition-all flex items-center focus:outline-hidden w-full ${
-                isExpanded
-                  ? "p-2 gap-3 hover:bg-neutral-50 border border-transparent hover:border-neutral-200/60"
-                  : "p-2 gap-3 lg:p-1 lg:justify-center hover:scale-105"
-              }`}
-              title="View User & Organization Profile"
-              aria-label="User Profile"
-            >
-              <div className="w-9 h-9 rounded-full bg-amber-200 border-2 border-amber-300 hover:border-amber-400 flex items-center justify-center text-amber-950 font-bold text-xs shadow-xs shrink-0 select-none">
-                {initials}
-              </div>
-
-              {/* User info: always visible on mobile, toggleable on desktop */}
-              <div className={`items-center justify-between flex-1 min-w-0 text-left ${
-                isExpanded ? "flex" : "flex lg:hidden"
-              }`}>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-neutral-900 truncate">
-                    {displayName}
-                  </p>
-                  <p className="text-[10px] text-neutral-400 font-mono truncate">
-                    {userRole}
-                  </p>
-                </div>
-                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" title="Active Session" />
-              </div>
-            </button>
-
-            {/* FLOATING USER PROFILE FLYOUT POPOVER CARD */}
-            {isUserMenuOpen && (
-              <div
-                ref={userMenuRef}
-                className="fixed inset-x-4 bottom-4 lg:absolute lg:inset-x-auto lg:left-full lg:bottom-0 lg:ml-3 w-auto lg:w-80 rounded-2xl bg-white border border-neutral-200/90 shadow-2xl p-4 sm:p-5 z-50 space-y-4 animate-in fade-in zoom-in-95 duration-150 text-neutral-900 select-text"
+          {/* USER SECTION: SIGN IN FOR GUESTS, PROFILE FOR AUTHENTICATED USERS */}
+          {!user ? (
+            <div className="w-full">
+              <button
+                type="button"
+                onClick={onSignIn}
+                className={`w-full rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white transition-all flex items-center justify-center font-medium shadow-xs ${
+                  isExpanded ? "py-2.5 px-3 gap-2.5 text-xs" : "p-2.5 justify-center"
+                }`}
+                title="Sign in to your account"
               >
-                {/* Popover Header */}
-                <div className="flex items-start justify-between gap-3 pb-3 border-b border-neutral-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-full bg-amber-200 border-2 border-amber-300 flex items-center justify-center text-amber-950 font-bold text-sm shadow-xs shrink-0 relative select-none">
-                      {initials}
-                      <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white" />
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="text-sm font-bold text-neutral-900 truncate">
-                        {displayName}
-                      </h3>
-                      <p className="text-xs text-neutral-500 truncate font-mono">
-                        {displayEmail}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsUserMenuOpen(false)}
-                    className="p-1 rounded-md text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
-                    title="Close"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                <LogIn className="w-4 h-4 shrink-0" />
+                <span className={isExpanded ? "inline" : "hidden"}>Sign In</span>
+              </button>
+            </div>
+          ) : (
+            <div className="relative w-full">
+              <button
+                type="button"
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className={`rounded-xl transition-all flex items-center focus:outline-hidden w-full ${
+                  isExpanded
+                    ? "p-2 gap-3 hover:bg-neutral-50 border border-transparent hover:border-neutral-200/60"
+                    : "p-2 gap-3 lg:p-1 lg:justify-center hover:scale-105"
+                }`}
+                title="View User & Organization Profile"
+                aria-label="User Profile"
+              >
+                <div className="w-9 h-9 rounded-full bg-amber-200 border-2 border-amber-300 hover:border-amber-400 flex items-center justify-center text-amber-950 font-bold text-xs shadow-xs shrink-0 select-none">
+                  {initials}
                 </div>
 
-                {/* Organization & Role Info */}
-                <div className="rounded-xl bg-neutral-50/80 border border-neutral-200/80 p-3 space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1.5 text-neutral-600 font-medium">
-                      <Building2 className="w-3.5 h-3.5 text-neutral-400" />
-                      <span>Organization:</span>
-                    </div>
-                    <span className="font-semibold text-neutral-900 truncate max-w-[140px]">
-                      {org?.name || "Acme Engineering"}
-                    </span>
+                {/* User info: always visible on mobile, toggleable on desktop */}
+                <div
+                  className={`items-center justify-between flex-1 min-w-0 text-left ${
+                    isExpanded ? "flex" : "flex lg:hidden"
+                  }`}
+                >
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-neutral-900 truncate">
+                      {displayName}
+                    </p>
+                    <p className="text-[10px] text-neutral-400 font-mono truncate">
+                      {userRole}
+                    </p>
                   </div>
-
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1.5 text-neutral-600 font-medium">
-                      <Shield className="w-3.5 h-3.5 text-neutral-400" />
-                      <span>Assigned Role:</span>
-                    </div>
-                    <span
-                      className={`capitalize px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
-                        userRole === "admin"
-                          ? "bg-purple-50 text-purple-700 border-purple-200"
-                          : userRole === "team_lead"
-                          ? "bg-blue-50 text-blue-700 border-blue-200"
-                          : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                      }`}
-                    >
-                      {userRole.replace("_", " ")}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-1.5 text-neutral-600 font-medium">
-                      <Lock className="w-3.5 h-3.5 text-neutral-400" />
-                      <span>Data Isolation:</span>
-                    </div>
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700">
-                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                      <span>RLS Enforced</span>
-                    </span>
-                  </div>
+                  <span
+                    className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"
+                    title="Active Session"
+                  />
                 </div>
+              </button>
 
-                {/* Identifier Essentials */}
-                <div className="space-y-1.5 text-xs text-neutral-500 font-mono">
-                  <div className="flex items-center justify-between py-0.5">
-                    <span className="text-[11px] text-neutral-400">Org ID:</span>
-                    <div className="flex items-center gap-1">
-                      <span className="text-[11px] text-neutral-700">
-                        {org?.org_id ? `${org.org_id.substring(0, 8)}...` : "89c99fb8..."}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleCopyText(org?.org_id || "89c99fb8-0a30-45e8-9132-bbc5c985c4f2", "org_id")}
-                        className="p-1 hover:text-neutral-900 rounded"
-                        title="Copy Org ID"
-                      >
-                        {copiedKey === "org_id" ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {user?.id && (
-                    <div className="flex items-center justify-between py-0.5">
-                      <span className="text-[11px] text-neutral-400">User ID:</span>
-                      <div className="flex items-center gap-1">
-                        <span className="text-[11px] text-neutral-700">
-                          {`${user.id.substring(0, 8)}...`}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleCopyText(user.id, "user_id")}
-                          className="p-1 hover:text-neutral-900 rounded"
-                          title="Copy User ID"
-                        >
-                          {copiedKey === "user_id" ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                        </button>
+              {/* FLOATING USER PROFILE FLYOUT POPOVER CARD */}
+              {isUserMenuOpen && (
+                <div
+                  ref={userMenuRef}
+                  className="fixed inset-x-4 bottom-4 lg:absolute lg:inset-x-auto lg:left-full lg:bottom-0 lg:ml-3 w-auto lg:w-80 rounded-2xl bg-white border border-neutral-200/90 shadow-2xl p-4 sm:p-5 z-50 space-y-4 animate-in fade-in zoom-in-95 duration-150 text-neutral-900 select-text"
+                >
+                  {/* Popover Header */}
+                  <div className="flex items-start justify-between gap-3 pb-3 border-b border-neutral-100">
+                    <div className="flex items-center gap-3">
+                      <div className="w-11 h-11 rounded-full bg-amber-200 border-2 border-amber-300 flex items-center justify-center text-amber-950 font-bold text-sm shadow-xs shrink-0 relative select-none">
+                        {initials}
+                        <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white" />
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-bold text-neutral-900 truncate">
+                          {displayName}
+                        </h3>
+                        <p className="text-xs text-neutral-500 truncate font-mono">
+                          {displayEmail}
+                        </p>
                       </div>
                     </div>
-                  )}
-                </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="p-1 rounded-md text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
+                      title="Close"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Organization & Role Info */}
+                  <div className="rounded-xl bg-neutral-50/80 border border-neutral-200/80 p-3 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1.5 text-neutral-600 font-medium">
+                        <Building2 className="w-3.5 h-3.5 text-neutral-400" />
+                        <span>Organization:</span>
+                      </div>
+                      <span className="font-semibold text-neutral-900 truncate max-w-[140px]">
+                        {org?.name || "Personal Workspace"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1.5 text-neutral-600 font-medium">
+                        <Shield className="w-3.5 h-3.5 text-neutral-400" />
+                        <span>Assigned Role:</span>
+                      </div>
+                      <span
+                        className={`capitalize px-2 py-0.5 rounded-full text-[11px] font-semibold border ${
+                          userRole === "admin"
+                            ? "bg-purple-50 text-purple-700 border-purple-200"
+                            : userRole === "team_lead"
+                            ? "bg-blue-50 text-blue-700 border-blue-200"
+                            : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        }`}
+                      >
+                        {userRole.replace("_", " ")}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-1.5 text-neutral-600 font-medium">
+                        <Lock className="w-3.5 h-3.5 text-neutral-400" />
+                        <span>Data Isolation:</span>
+                      </div>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                        <span>RLS Enforced</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Identifier Essentials */}
+                  <div className="space-y-1.5 text-xs text-neutral-500 font-mono">
+                    <div className="flex items-center justify-between py-0.5">
+                      <span className="text-[11px] text-neutral-400">Org ID:</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[11px] text-neutral-700">
+                          {org?.org_id ? `${org.org_id.substring(0, 8)}...` : "None"}
+                        </span>
+                        {org?.org_id && (
+                          <button
+                            type="button"
+                            onClick={() => handleCopyText(org.org_id, "org_id")}
+                            className="p-1 hover:text-neutral-900 rounded"
+                            title="Copy Org ID"
+                          >
+                            {copiedKey === "org_id" ? (
+                              <Check className="w-3 h-3 text-emerald-600" />
+                            ) : (
+                              <Copy className="w-3 h-3" />
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {user?.id && (
+                      <div className="flex items-center justify-between py-0.5">
+                        <span className="text-[11px] text-neutral-400">User ID:</span>
+                        <div className="flex items-center gap-1">
+                          <span className="text-[11px] text-neutral-700">
+                            {`${user.id.substring(0, 8)}...`}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleCopyText(user.id, "user_id")}
+                            className="p-1 hover:text-neutral-900 rounded"
+                            title="Copy User ID"
+                          >
+                            {copiedKey === "user_id" ? (
+                              <Check className="w-3 h-3 text-emerald-600" />
+                            ) : (
+                              <Copy className="w-3 h-3" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                 {/* Actions / Sign Out */}
                 <div className="pt-2 border-t border-neutral-100 flex items-center justify-between gap-2">
@@ -542,8 +577,9 @@ export function AppSidebar({
               </div>
             )}
           </div>
-        </div>
-      </aside>
+        )}
+      </div>
+    </aside>
     </>
   );
 }

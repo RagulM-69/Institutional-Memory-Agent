@@ -185,6 +185,7 @@ export default function SettingsPage() {
         org={org}
         user={user}
         onSignOut={handleSignOut}
+        onSignIn={() => setIsAuthModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -311,7 +312,7 @@ export default function SettingsPage() {
                     <input
                       type="text"
                       disabled
-                      value={org?.name || "Acme Engineering"}
+                      value={org?.name || (user ? "Personal Workspace" : "No Active Organization")}
                       className="w-full text-xs px-3 py-2 rounded-lg border border-neutral-300 bg-neutral-50 text-neutral-600 font-medium"
                     />
                   </div>
@@ -321,7 +322,7 @@ export default function SettingsPage() {
                     <input
                       type="text"
                       disabled
-                      value={org?.slug || "acme-engineering"}
+                      value={org?.slug || (user ? "personal" : "unauthenticated")}
                       className="w-full text-xs px-3 py-2 rounded-lg border border-neutral-300 bg-neutral-50 text-neutral-600 font-mono"
                     />
                   </div>
@@ -334,25 +335,22 @@ export default function SettingsPage() {
                       <input
                         type="text"
                         readOnly
-                        value={org?.org_id || "89c99fb8-0a30-45e8-9132-bbc5c985c4f2"}
+                        value={org?.org_id || (user ? "Personal Tenant" : "Sign in to view tenant ID")}
                         className="w-full text-xs px-3 py-2 rounded-lg border border-neutral-200 bg-neutral-50 font-mono text-neutral-600 select-all"
                       />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleCopyText(
-                            org?.org_id || "89c99fb8-0a30-45e8-9132-bbc5c985c4f2",
-                            "org_id"
-                          )
-                        }
-                        className="p-2 border border-neutral-200 rounded-lg hover:bg-neutral-100 text-neutral-600"
-                      >
-                        {copiedKey === "org_id" ? (
-                          <Check className="w-4 h-4 text-emerald-600" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
-                      </button>
+                      {org?.org_id && (
+                        <button
+                          type="button"
+                          onClick={() => handleCopyText(org.org_id, "org_id")}
+                          className="p-2 border border-neutral-200 rounded-lg hover:bg-neutral-100 text-neutral-600"
+                        >
+                          {copiedKey === "org_id" ? (
+                            <Check className="w-4 h-4 text-emerald-600" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </button>
+                      )}
                     </div>
                     <p className="text-[11px] text-neutral-400">
                       Used by PostgreSQL kernel policies to enforce cryptographically isolated tenancy across queries.

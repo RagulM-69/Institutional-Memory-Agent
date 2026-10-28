@@ -397,6 +397,7 @@ export default function HandoffsWorkspace() {
         org={org}
         user={user}
         onSignOut={handleSignOut}
+        onSignIn={() => setIsAuthModalOpen(true)}
       />
 
       {/* Main Content Area */}

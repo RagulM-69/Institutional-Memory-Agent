@@ -15,6 +15,7 @@ import {
   ExternalLink,
   ChevronRight,
   Sparkles,
+  LogIn,
 } from "lucide-react";
 import { AppSidebar } from "@/components/shell/AppSidebar";
 import { AppHeader } from "@/components/shell/AppHeader";
@@ -217,6 +218,7 @@ export default function AskWorkspace() {
         org={org}
         user={user}
         onSignOut={handleSignOut}
+        onSignIn={() => setIsAuthModalOpen(true)}
       />
 
       {/* Main Workspace Column */}
@@ -249,112 +251,150 @@ export default function AskWorkspace() {
                   <span className="uppercase tracking-wider text-[11px] text-neutral-400 font-semibold">
                     Live Integrated Knowledge Sources
                   </span>
-                  <Link
-                    href="/sources"
-                    className="inline-flex items-center gap-1 text-neutral-600 hover:text-neutral-900 transition-colors font-medium"
-                  >
-                    <span>Manage sources</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </Link>
+                  {user && (
+                    <Link
+                      href="/sources"
+                      className="inline-flex items-center gap-1 text-neutral-600 hover:text-neutral-900 transition-colors font-medium"
+                    >
+                      <span>Manage sources</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </Link>
+                  )}
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {/* GitHub Card */}
-                  <Link
-                    href="/sources"
-                    className="group relative rounded-xl border border-neutral-200/90 bg-white p-4 shadow-2xs hover:shadow-xs hover:border-neutral-300 transition-all duration-150 flex flex-col justify-between"
-                  >
-                    <div className="space-y-2.5">
-                      <div className="flex items-center justify-between">
+                {!user ? (
+                  <div className="rounded-xl border border-neutral-200/90 bg-white p-4 sm:p-5 shadow-2xs">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="space-y-1.5 max-w-xl">
                         <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-neutral-900 text-white flex items-center justify-center shadow-xs">
-                            <GitHubLogo className="w-4 h-4 text-white" />
+                          <div className="flex -space-x-1.5">
+                            <div className="w-6 h-6 rounded-md bg-neutral-900 text-white flex items-center justify-center shadow-xs">
+                              <GitHubLogo className="w-3.5 h-3.5 text-white" />
+                            </div>
+                            <div className="w-6 h-6 rounded-md bg-blue-50 border border-blue-200/80 flex items-center justify-center shadow-xs">
+                              <JiraLogo className="w-3.5 h-3.5" />
+                            </div>
+                            <div className="w-6 h-6 rounded-md bg-emerald-50 border border-emerald-200/80 flex items-center justify-center shadow-xs">
+                              <SlackLogo className="w-3.5 h-3.5" />
+                            </div>
                           </div>
-                          <div>
-                            <span className="text-xs font-semibold text-neutral-900 group-hover:text-blue-600 transition-colors">
-                              GitHub
-                            </span>
-                            <span className="block text-[11px] text-neutral-400 font-mono">
-                              gowthaman1205/Continuity
-                            </span>
-                          </div>
+                          <span className="text-xs font-semibold text-neutral-900">
+                            Multi-Source Knowledge Ingestion
+                          </span>
                         </div>
-                        <span className="w-2 h-2 rounded-full bg-emerald-500" title="Operational" />
+                        <p className="text-xs text-neutral-500 leading-relaxed">
+                          Synthesizes architectural decisions and discussions across GitHub commits &amp; pull requests, Jira sprint tickets, and Slack channels with verifiable citations.
+                        </p>
                       </div>
-                      <p className="text-xs text-neutral-500 leading-snug">
-                        Commits, PR diff reviews, and engineering commit messages.
-                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setIsAuthModalOpen(true)}
+                        className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-medium transition-colors shadow-xs shrink-0 self-start sm:self-auto"
+                      >
+                        <LogIn className="w-3.5 h-3.5" />
+                        <span>Sign In to Access</span>
+                      </button>
                     </div>
-                    <div className="pt-3 mt-1 border-t border-neutral-100 flex items-center justify-between text-[11px] text-neutral-400">
-                      <span className="font-mono">4 Commits Synced</span>
-                      <span className="text-neutral-600 group-hover:translate-x-0.5 transition-transform">→</span>
-                    </div>
-                  </Link>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {/* GitHub Card */}
+                    <Link
+                      href="/sources"
+                      className="group relative rounded-xl border border-neutral-200/90 bg-white p-4 shadow-2xs hover:shadow-xs hover:border-neutral-300 transition-all duration-150 flex flex-col justify-between"
+                    >
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-lg bg-neutral-900 text-white flex items-center justify-center shadow-xs">
+                              <GitHubLogo className="w-4 h-4 text-white" />
+                            </div>
+                            <div>
+                              <span className="text-xs font-semibold text-neutral-900 group-hover:text-blue-600 transition-colors">
+                                GitHub
+                              </span>
+                              <span className="block text-[11px] text-neutral-400 font-mono">
+                                Repositories &amp; PRs
+                              </span>
+                            </div>
+                          </div>
+                          <span className="w-2 h-2 rounded-full bg-emerald-500" title="Connected" />
+                        </div>
+                        <p className="text-xs text-neutral-500 leading-snug">
+                          Commits, pull request reviews, and engineering commit messages.
+                        </p>
+                      </div>
+                      <div className="pt-3 mt-1 border-t border-neutral-100 flex items-center justify-between text-[11px] text-neutral-400">
+                        <span className="font-mono">Repository Sync</span>
+                        <span className="text-neutral-600 group-hover:translate-x-0.5 transition-transform">→</span>
+                      </div>
+                    </Link>
 
-                  {/* Jira Card */}
-                  <Link
-                    href="/sources"
-                    className="group relative rounded-xl border border-neutral-200/90 bg-white p-4 shadow-2xs hover:shadow-xs hover:border-neutral-300 transition-all duration-150 flex flex-col justify-between"
-                  >
-                    <div className="space-y-2.5">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200/80 flex items-center justify-center shadow-xs">
-                            <JiraLogo className="w-4 h-4" />
+                    {/* Jira Card */}
+                    <Link
+                      href="/sources"
+                      className="group relative rounded-xl border border-neutral-200/90 bg-white p-4 shadow-2xs hover:shadow-xs hover:border-neutral-300 transition-all duration-150 flex flex-col justify-between"
+                    >
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-200/80 flex items-center justify-center shadow-xs">
+                              <JiraLogo className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <span className="text-xs font-semibold text-neutral-900 group-hover:text-blue-600 transition-colors">
+                                Jira Cloud
+                              </span>
+                              <span className="block text-[11px] text-neutral-400 font-mono">
+                                Sprint Backlogs &amp; Issues
+                              </span>
+                            </div>
                           </div>
-                          <div>
-                            <span className="text-xs font-semibold text-neutral-900 group-hover:text-blue-600 transition-colors">
-                              Jira Cloud
-                            </span>
-                            <span className="block text-[11px] text-neutral-400 font-mono">
-                              Project KAN
-                            </span>
-                          </div>
+                          <span className="w-2 h-2 rounded-full bg-emerald-500" title="Connected" />
                         </div>
-                        <span className="w-2 h-2 rounded-full bg-emerald-500" title="Operational" />
+                        <p className="text-xs text-neutral-500 leading-snug">
+                          Tasks, subtasks, descriptions, assignees, and resolution status.
+                        </p>
                       </div>
-                      <p className="text-xs text-neutral-500 leading-snug">
-                        Tasks, subtasks, descriptions, assignees, and resolution status.
-                      </p>
-                    </div>
-                    <div className="pt-3 mt-1 border-t border-neutral-100 flex items-center justify-between text-[11px] text-neutral-400">
-                      <span className="font-mono">3 Tickets Synced</span>
-                      <span className="text-neutral-600 group-hover:translate-x-0.5 transition-transform">→</span>
-                    </div>
-                  </Link>
+                      <div className="pt-3 mt-1 border-t border-neutral-100 flex items-center justify-between text-[11px] text-neutral-400">
+                        <span className="font-mono">Issues Sync</span>
+                        <span className="text-neutral-600 group-hover:translate-x-0.5 transition-transform">→</span>
+                      </div>
+                    </Link>
 
-                  {/* Slack Card */}
-                  <Link
-                    href="/sources"
-                    className="group relative rounded-xl border border-neutral-200/90 bg-white p-4 shadow-2xs hover:shadow-xs hover:border-neutral-300 transition-all duration-150 flex flex-col justify-between"
-                  >
-                    <div className="space-y-2.5">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-emerald-50/70 border border-emerald-200/80 flex items-center justify-center shadow-xs">
-                            <SlackLogo className="w-4 h-4" />
+                    {/* Slack Card */}
+                    <Link
+                      href="/sources"
+                      className="group relative rounded-xl border border-neutral-200/90 bg-white p-4 shadow-2xs hover:shadow-xs hover:border-neutral-300 transition-all duration-150 flex flex-col justify-between"
+                    >
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-lg bg-emerald-50/70 border border-emerald-200/80 flex items-center justify-center shadow-xs">
+                              <SlackLogo className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <span className="text-xs font-semibold text-neutral-900 group-hover:text-emerald-700 transition-colors">
+                                Slack Workspace
+                              </span>
+                              <span className="block text-[11px] text-neutral-400 font-mono">
+                                Handoff Channels &amp; DMs
+                              </span>
+                            </div>
                           </div>
-                          <div>
-                            <span className="text-xs font-semibold text-neutral-900 group-hover:text-emerald-700 transition-colors">
-                              Slack Workspace
-                            </span>
-                            <span className="block text-[11px] text-neutral-400 font-mono">
-                              #handoff-discussion
-                            </span>
-                          </div>
+                          <span className="w-2 h-2 rounded-full bg-emerald-500" title="Connected" />
                         </div>
-                        <span className="w-2 h-2 rounded-full bg-emerald-500" title="Operational" />
+                        <p className="text-xs text-neutral-500 leading-snug">
+                          Channel discussions, architectural consensus, and thread decisions.
+                        </p>
                       </div>
-                      <p className="text-xs text-neutral-500 leading-snug">
-                        Channel discussions, architectural consensus, and thread decisions.
-                      </p>
-                    </div>
-                    <div className="pt-3 mt-1 border-t border-neutral-100 flex items-center justify-between text-[11px] text-neutral-400">
-                      <span className="font-mono">13 Messages Synced</span>
-                      <span className="text-neutral-600 group-hover:translate-x-0.5 transition-transform">→</span>
-                    </div>
-                  </Link>
-                </div>
+                      <div className="pt-3 mt-1 border-t border-neutral-100 flex items-center justify-between text-[11px] text-neutral-400">
+                        <span className="font-mono">Channel Sync</span>
+                        <span className="text-neutral-600 group-hover:translate-x-0.5 transition-transform">→</span>
+                      </div>
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           )}

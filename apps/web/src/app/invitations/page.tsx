@@ -263,6 +263,7 @@ function InvitationsContent() {
         apiOnline={apiOnline}
         org={org}
         user={user}
+        onSignIn={() => setIsAuthModalOpen(true)}
         onSignOut={() => {
           const sb = getSupabase();
           if (sb) sb.auth.signOut();

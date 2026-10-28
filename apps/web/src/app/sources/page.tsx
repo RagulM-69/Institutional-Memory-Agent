@@ -597,6 +597,7 @@ export default function SourcesPage() {
         org={org}
         user={user}
         onSignOut={handleSignOut}
+        onSignIn={() => setIsAuthModalOpen(true)}
       />
 
       {/* Main Content Area */}
