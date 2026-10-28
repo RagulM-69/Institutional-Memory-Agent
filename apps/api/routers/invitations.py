@@ -18,7 +18,7 @@ from typing import Dict, List, Optional, Tuple
 from uuid import UUID, uuid4
 
 import asyncpg
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
 
 from apps.api.auth.dependencies import (
@@ -27,6 +27,7 @@ from apps.api.auth.dependencies import (
     get_current_user,
     get_organization_context,
     require_admin,
+    require_team_lead_or_admin,
 )
 from apps.api.config import settings
 from apps.api.db.pool import transaction_context
@@ -199,7 +200,7 @@ class AcceptInvitationResponse(BaseModel):
 @router.post("", response_model=InvitationCreatedResponse, status_code=status.HTTP_201_CREATED)
 async def create_invitation(
     payload: CreateInvitationRequest,
-    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_admin),
+    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_team_lead_or_admin),
 ) -> InvitationCreatedResponse:
     """
     Generate an in-platform invitation with single-use token and high-entropy code.
@@ -297,11 +298,12 @@ async def create_invitation(
 
 @router.get("", response_model=List[InvitationSummaryResponse])
 async def list_invitations(
-    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_admin),
+    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_team_lead_or_admin),
 ) -> List[InvitationSummaryResponse]:
     """
     List all invitations for the active organization.
     Excludes all secret hashes and tokens.
+    Requires administrator or team lead privileges.
     """
     user, org = context
 
@@ -330,36 +332,48 @@ async def list_invitations(
 
 
 @router.delete("/{invitation_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def revoke_invitation(
+async def delete_or_revoke_invitation(
     invitation_id: UUID,
-    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_admin),
+    permanent: bool = Query(default=False, description="Whether to permanently delete the invitation record."),
+    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_team_lead_or_admin),
 ) -> None:
     """
-    Revoke a pending invitation.
+    Revoke or permanently delete an invitation.
+    Requires administrator or team lead privileges.
     """
     user, org = context
 
     async with transaction_context(user_id=user.id, org_id=org.org_id) as conn:
-        res = await conn.execute(
-            """
-            UPDATE public.invitations
-            SET status = 'revoked', updated_at = now()
-            WHERE id = $1 AND org_id = $2 AND status = 'pending'
-            """,
-            invitation_id,
-            org.org_id,
-        )
-        if res == "UPDATE 0":
+        if permanent:
+            res = await conn.execute(
+                """
+                DELETE FROM public.invitations
+                WHERE id = $1 AND org_id = $2
+                """,
+                invitation_id,
+                org.org_id,
+            )
+        else:
+            res = await conn.execute(
+                """
+                UPDATE public.invitations
+                SET status = 'revoked', updated_at = now()
+                WHERE id = $1 AND org_id = $2
+                """,
+                invitation_id,
+                org.org_id,
+            )
+        if res in ("UPDATE 0", "DELETE 0"):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Pending invitation not found.",
+                detail="Invitation not found.",
             )
 
 
 @router.post("/{invitation_id}/resend", response_model=InvitationCreatedResponse)
 async def resend_invitation(
     invitation_id: UUID,
-    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_admin),
+    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_team_lead_or_admin),
 ) -> InvitationCreatedResponse:
     """
     Revoke the previous invitation and issue fresh cryptographically secure credentials.

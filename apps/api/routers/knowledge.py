@@ -278,3 +278,40 @@ async def get_knowledge_note(
             linked_records=linked_records,
         )
 
+
+@router.delete("/{note_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_knowledge_note(
+    note_id: UUID,
+    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(get_organization_context),
+) -> None:
+    """
+    Permanently delete a knowledge note and its linked record references.
+    """
+    user, org = context
+
+    async with transaction_context(user_id=user.id, org_id=org.org_id) as conn:
+        note = await conn.fetchrow(
+            "SELECT id FROM public.knowledge_notes WHERE id = $1 AND org_id = $2",
+            note_id,
+            org.org_id,
+        )
+        if not note:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Knowledge note not found.",
+            )
+
+        # 1. Delete linked record relations
+        await conn.execute(
+            "DELETE FROM public.knowledge_note_records WHERE note_id = $1 AND org_id = $2",
+            note_id,
+            org.org_id,
+        )
+
+        # 2. Delete note
+        await conn.execute(
+            "DELETE FROM public.knowledge_notes WHERE id = $1 AND org_id = $2",
+            note_id,
+            org.org_id,
+        )
+

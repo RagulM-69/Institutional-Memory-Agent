@@ -202,6 +202,28 @@ class IngestPipeline:
                     await self._update_source_status(connection, source_id, org_id, "failed", sync_cursor, report.errors)
                     return report
                     return report
+            elif source_type == "meeting":
+                # Meeting transcripts are ingested directly via the Meeting Ingestion API (/api/meetings).
+                # A manual or scheduled sync validates existing records and reconciles count and state.
+                record_count = (
+                    await connection.fetchval(
+                        """
+                        SELECT count(*) FROM public.records
+                        WHERE source_id = $1 AND org_id = $2
+                        """,
+                        UUID(source_id),
+                        UUID(org_id),
+                    )
+                    or 0
+                )
+                report.status = "ok"
+                report.records_scanned = record_count
+                report.records_created = 0
+                report.records_updated = 0
+                await self._update_source_status(
+                    connection, source_id, org_id, "ok", sync_cursor, []
+                )
+                return report
             else:
                 report.status = "failed"
                 report.errors.append(f"Connector type '{source_type}' is not supported yet")

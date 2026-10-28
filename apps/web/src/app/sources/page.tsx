@@ -24,6 +24,7 @@ import {
   Info,
   GitBranch,
   Check,
+  Trash2,
 } from "lucide-react";
 import { AppSidebar } from "@/components/shell/AppSidebar";
 import { AppHeader } from "@/components/shell/AppHeader";
@@ -48,6 +49,7 @@ import {
   createSource,
   updateSource,
   syncSource,
+  deleteSource,
   getSourceRecords,
   validateSourceConfig,
   getOAuthStatus,
@@ -121,7 +123,7 @@ export default function SourcesPage() {
   const [recordsError, setRecordsError] = useState<string | null>(null);
   const recordsLimit = 15;
 
-  const isAdmin = org?.role === "admin";
+  const isAdmin = org?.role === "admin" || org?.role === "team_lead";
 
   // Refresh Session
   const refreshSession = useCallback(async () => {
@@ -501,6 +503,25 @@ export default function SourcesPage() {
       await fetchSources();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : `Failed to ${actionLabel} source`;
+      setGeneralError(msg);
+    }
+  };
+
+  // Permanently Delete Source
+  const handleDeleteSource = async (source: KnowledgeSource) => {
+    if (!jwt || !org || !isAdmin) return;
+    const confirmed = window.confirm(
+      `Are you sure you want to permanently delete "${source.name}" and all its records, versions, and embeddings? This action cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    try {
+      await deleteSource(source.id, jwt, org.org_id);
+      setActionSuccess(`Source "${source.name}" was permanently deleted.`);
+      setTimeout(() => setActionSuccess(null), 5000);
+      await fetchSources();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to delete source";
       setGeneralError(msg);
     }
   };
@@ -1078,6 +1099,17 @@ export default function SourcesPage() {
                                 title={source.is_archived ? "Restore source" : "Soft-archive source"}
                               >
                                 <Archive className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+
+                            {isAdmin && (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteSource(source)}
+                                className="inline-flex items-center gap-1 p-1.5 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                                title="Permanently delete source and data"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             )}
                           </div>

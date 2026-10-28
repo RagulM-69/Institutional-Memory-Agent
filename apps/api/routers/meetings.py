@@ -290,3 +290,64 @@ async def list_meetings(
                 )
             )
         return result
+
+
+@router.delete("/{record_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_meeting(
+    record_id: UUID,
+    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(get_organization_context),
+) -> None:
+    """
+    Permanently delete an ingested meeting transcript and its associated chunks and versions.
+    """
+    user, org = context
+
+    async with transaction_context(user_id=user.id, org_id=org.org_id) as conn:
+        rec = await conn.fetchrow(
+            "SELECT id, source_id FROM public.records WHERE id = $1 AND org_id = $2 AND record_type = 'meeting'",
+            record_id,
+            org.org_id,
+        )
+        if not rec:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Meeting transcript record not found.",
+            )
+
+        # 1. Clean up knowledge note links
+        await conn.execute(
+            "DELETE FROM public.knowledge_note_records WHERE record_id = $1 AND org_id = $2",
+            record_id,
+            org.org_id,
+        )
+
+        # 2. Clean up record links
+        await conn.execute(
+            """
+            DELETE FROM public.record_links
+            WHERE (from_record_id = $1 OR to_record_id = $1) AND org_id = $2
+            """,
+            record_id,
+            org.org_id,
+        )
+
+        # 3. Clean up chunks
+        await conn.execute(
+            "DELETE FROM public.chunks WHERE record_id = $1 AND org_id = $2",
+            record_id,
+            org.org_id,
+        )
+
+        # 4. Clean up versions
+        await conn.execute(
+            "DELETE FROM public.record_versions WHERE record_id = $1 AND org_id = $2",
+            record_id,
+            org.org_id,
+        )
+
+        # 5. Clean up record
+        await conn.execute(
+            "DELETE FROM public.records WHERE id = $1 AND org_id = $2",
+            record_id,
+            org.org_id,
+        )

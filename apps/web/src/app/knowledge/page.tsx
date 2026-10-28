@@ -14,6 +14,7 @@ import {
   ShieldAlert,
   RefreshCw,
   Clock,
+  Trash2,
 } from "lucide-react";
 import { AppSidebar } from "@/components/shell/AppSidebar";
 import { AppHeader } from "@/components/shell/AppHeader";
@@ -30,8 +31,10 @@ import {
   getCurrentUser,
   listKnowledgeNotes,
   createKnowledgeNote,
+  deleteKnowledgeNote,
   listMeetings,
   ingestMeeting,
+  deleteMeeting,
   ApiError,
 } from "@/lib/api";
 import { getAccessToken, getSupabase } from "@/lib/supabaseClient";
@@ -236,6 +239,36 @@ export default function KnowledgeHub() {
     }
   };
 
+  const handleDeleteNote = async (noteId: string) => {
+    if (!jwt || !org) return;
+    const confirmed = window.confirm("Are you sure you want to delete this knowledge note?");
+    if (!confirmed) return;
+
+    try {
+      await deleteKnowledgeNote(noteId, jwt, org.org_id);
+      await fetchActiveTabContent();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to delete knowledge note";
+      setGeneralError(msg);
+    }
+  };
+
+  const handleDeleteMeeting = async (meetingId: string) => {
+    if (!jwt || !org) return;
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this meeting transcript and its indexed vector embeddings?"
+    );
+    if (!confirmed) return;
+
+    try {
+      await deleteMeeting(meetingId, jwt, org.org_id);
+      await fetchActiveTabContent();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to delete meeting transcript";
+      setGeneralError(msg);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-[#fcfcfc] text-neutral-900 font-sans antialiased overflow-hidden">
       {/* Navigation Sidebar */}
@@ -436,10 +469,20 @@ export default function KnowledgeHub() {
                             {note.title}
                           </h2>
                         </div>
-                        <span className="text-[11px] text-neutral-400 flex items-center gap-1 shrink-0">
-                          <Clock className="w-3 h-3" />
-                          {new Date(note.created_at).toLocaleDateString()}
-                        </span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-[11px] text-neutral-400 flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {new Date(note.created_at).toLocaleDateString()}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteNote(note.id)}
+                            className="p-1 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors"
+                            title="Delete knowledge note"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
 
                       <div className="text-xs text-neutral-700 leading-relaxed whitespace-pre-wrap">
@@ -508,10 +551,20 @@ export default function KnowledgeHub() {
                             {m.title}
                           </h2>
                         </div>
-                        <span className="text-[11px] text-neutral-400 flex items-center gap-1 shrink-0">
-                          <Calendar className="w-3 h-3" />
-                          {m.meeting_date ? new Date(m.meeting_date).toLocaleDateString() : new Date(m.created_at).toLocaleDateString()}
-                        </span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-[11px] text-neutral-400 flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {m.meeting_date ? new Date(m.meeting_date).toLocaleDateString() : new Date(m.created_at).toLocaleDateString()}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteMeeting(m.id)}
+                            className="p-1 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors"
+                            title="Delete meeting transcript and vectors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-4 text-[11px] text-neutral-500 pt-1 border-t border-neutral-100">

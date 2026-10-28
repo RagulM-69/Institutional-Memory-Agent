@@ -344,6 +344,34 @@ export async function ingestMeeting(
   }
 }
 
+export async function deleteMeeting(
+  recordId: string,
+  jwt: string,
+  orgId?: string
+): Promise<{ success: boolean }> {
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${jwt}`,
+    Accept: "application/json",
+  };
+  if (orgId) headers["X-Organization-Id"] = orgId;
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/meetings/${recordId}`, {
+      method: "DELETE",
+      headers,
+    });
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      const parsed = parseErrorResponse(res.status, errBody);
+      throw new ApiError(parsed.message, parsed.status, parsed.recoveryHint);
+    }
+    return { success: true };
+  } catch (err) {
+    if (err instanceof ApiError) throw err;
+    throw new ApiError(`Unable to reach API server at ${API_BASE_URL}.`, 0);
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Handoffs
 // ---------------------------------------------------------------------------
@@ -517,6 +545,34 @@ export async function submitAnswerFeedback(
 // Knowledge Sources
 // ---------------------------------------------------------------------------
 
+export async function deleteKnowledgeNote(
+  noteId: string,
+  jwt: string,
+  orgId?: string
+): Promise<{ success: boolean }> {
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${jwt}`,
+    Accept: "application/json",
+  };
+  if (orgId) headers["X-Organization-Id"] = orgId;
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/knowledge-notes/${noteId}`, {
+      method: "DELETE",
+      headers,
+    });
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      const parsed = parseErrorResponse(res.status, errBody);
+      throw new ApiError(parsed.message, parsed.status, parsed.recoveryHint);
+    }
+    return { success: true };
+  } catch (err) {
+    if (err instanceof ApiError) throw err;
+    throw new ApiError(`Unable to reach API server at ${API_BASE_URL}.`, 0);
+  }
+}
+
 export async function listSources(
   jwt: string,
   orgId?: string
@@ -640,6 +696,38 @@ export async function syncSource(
       throw new ApiError(parsed.message, parsed.status, parsed.recoveryHint);
     }
     return res.json();
+  } catch (err) {
+    if (err instanceof ApiError) throw err;
+    throw new ApiError(
+      `Unable to reach API server at ${API_BASE_URL}.`,
+      0,
+      "Verify the FastAPI backend is running."
+    );
+  }
+}
+
+export async function deleteSource(
+  sourceId: string,
+  jwt: string,
+  orgId?: string
+): Promise<{ success: boolean }> {
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${jwt}`,
+    Accept: "application/json",
+  };
+  if (orgId) headers["X-Organization-Id"] = orgId;
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/sources/${sourceId}`, {
+      method: "DELETE",
+      headers,
+    });
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      const parsed = parseErrorResponse(res.status, errBody);
+      throw new ApiError(parsed.message, parsed.status, parsed.recoveryHint);
+    }
+    return { success: true };
   } catch (err) {
     if (err instanceof ApiError) throw err;
     throw new ApiError(
@@ -1024,6 +1112,35 @@ export async function listInvitations(
       throw new ApiError(parsed.message, parsed.status, parsed.recoveryHint);
     }
     return res.json();
+  } catch (err) {
+    if (err instanceof ApiError) throw err;
+    throw new ApiError(`Unable to reach API server at ${API_BASE_URL}.`, 0);
+  }
+}
+
+export async function deleteInvitation(
+  invitationId: string,
+  jwt: string,
+  orgId?: string,
+  permanent: boolean = true
+): Promise<{ success: boolean }> {
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${jwt}`,
+    Accept: "application/json",
+  };
+  if (orgId) headers["X-Organization-Id"] = orgId;
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/invitations/${invitationId}?permanent=${permanent}`, {
+      method: "DELETE",
+      headers,
+    });
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      const parsed = parseErrorResponse(res.status, errBody);
+      throw new ApiError(parsed.message, parsed.status, parsed.recoveryHint);
+    }
+    return { success: true };
   } catch (err) {
     if (err instanceof ApiError) throw err;
     throw new ApiError(`Unable to reach API server at ${API_BASE_URL}.`, 0);

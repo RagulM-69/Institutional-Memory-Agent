@@ -41,6 +41,7 @@ import {
   createInvitation,
   listInvitations,
   revokeInvitation,
+  deleteInvitation,
   resendInvitation,
   listMyOrganizations,
   createOrganization,
@@ -152,7 +153,7 @@ export default function TeamPage() {
         const mems = await listTeamMembers(jwt, org.org_id);
         setMembers(mems);
 
-        if (isAdmin) {
+        if (isTeamLeadOrAdmin) {
           const invites = await listInvitations(jwt, org.org_id);
           setInvitations(invites);
         }
@@ -244,6 +245,26 @@ export default function TeamPage() {
         setErrorMsg(err.message);
       } else {
         setErrorMsg("Failed to revoke invitation.");
+      }
+    }
+  };
+
+  // Handle Permanent Delete Invite
+  const handleDeleteInvite = async (invitationId: string) => {
+    if (!jwt || !org) return;
+    const confirmed = window.confirm("Are you sure you want to permanently delete this invitation record?");
+    if (!confirmed) return;
+
+    setErrorMsg(null);
+    try {
+      await deleteInvitation(invitationId, jwt, org.org_id, true);
+      setSuccessMsg("Invitation record deleted successfully.");
+      await loadData();
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setErrorMsg(err.message);
+      } else {
+        setErrorMsg("Failed to delete invitation.");
       }
     }
   };
@@ -684,22 +705,36 @@ export default function TeamPage() {
                               </span>
                             )}
 
-                            {inv.status === "pending" && !isExpired && (
-                              <div className="flex items-center gap-1 ml-2">
+                            <div className="flex items-center gap-1.5 ml-2">
+                              {inv.status === "pending" && !isExpired && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleResendInvite(inv.id)}
+                                    className="text-xs px-2.5 py-1 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-md border border-neutral-200 transition-colors font-medium shadow-2xs"
+                                  >
+                                    Resend
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRevokeInvite(inv.id)}
+                                    className="text-xs px-2.5 py-1 text-amber-700 hover:text-amber-800 hover:bg-amber-50 rounded-md border border-amber-200 transition-colors font-medium shadow-2xs"
+                                  >
+                                    Revoke
+                                  </button>
+                                </>
+                              )}
+                              {isTeamLeadOrAdmin && (
                                 <button
-                                  onClick={() => handleResendInvite(inv.id)}
-                                  className="text-xs px-2 py-1 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded border border-neutral-200"
+                                  type="button"
+                                  onClick={() => handleDeleteInvite(inv.id)}
+                                  className="text-xs p-1.5 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-md border border-transparent hover:border-rose-200 transition-colors"
+                                  title="Permanently delete invitation record"
                                 >
-                                  Resend
+                                  <Trash2 className="w-3.5 h-3.5" />
                                 </button>
-                                <button
-                                  onClick={() => handleRevokeInvite(inv.id)}
-                                  className="text-xs px-2 py-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded border border-red-200"
-                                >
-                                  Revoke
-                                </button>
-                              </div>
-                            )}
+                              )}
+                            </div>
                           </div>
                         </div>
                       );

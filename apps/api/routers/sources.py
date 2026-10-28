@@ -36,6 +36,7 @@ from apps.api.auth.dependencies import (
     AuthenticatedUser,
     get_organization_context,
     require_admin,
+    require_team_lead_or_admin,
 )
 from apps.api.connectors.base import ValidationResult
 from apps.api.connectors.github import GitHubConnector
@@ -411,7 +412,7 @@ async def get_oauth_status(
 @router.get("/oauth/{provider}/authorize", response_model=OAuthAuthorizeResponse)
 async def get_oauth_authorize_url(
     provider: str,
-    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_admin),
+    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_team_lead_or_admin),
 ) -> OAuthAuthorizeResponse:
     """
     Generate provider OAuth authorization URL with signed anti-tamper state parameter.
@@ -654,7 +655,7 @@ async def oauth_callback(
 @router.get("/oauth/session/{session_id}", response_model=OAuthSessionResponse)
 async def get_oauth_session(
     session_id: str,
-    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_admin),
+    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_team_lead_or_admin),
 ) -> OAuthSessionResponse:
     """
     Inspect an established OAuth setup session to select target repository, project, or channel.
@@ -681,7 +682,7 @@ async def get_oauth_session(
 async def finalize_oauth_session(
     session_id: str,
     request: FinalizeOAuthSessionRequest,
-    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_admin),
+    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_team_lead_or_admin),
 ) -> KnowledgeSourceResponse:
     """
     Finalize an OAuth session by creating a source for the selected target with encrypted credentials.
@@ -867,7 +868,7 @@ async def list_sources(
 @router.post("", response_model=KnowledgeSourceResponse, status_code=status.HTTP_201_CREATED)
 async def create_source(
     request: CreateSourceRequest,
-    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_admin),
+    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_team_lead_or_admin),
 ) -> KnowledgeSourceResponse:
     """
     Register a new knowledge source.
@@ -996,11 +997,11 @@ async def create_source(
 @router.post("/validate", response_model=ValidationResponse)
 async def validate_source_connection(
     request: ValidateConfigRequest,
-    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_admin),
+    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_team_lead_or_admin),
 ) -> ValidationResponse:
     """
     Test connector reachability and credentials for given configuration.
-    Requires organization administrator privileges.
+    Requires organization administrator or team lead privileges.
     Uses provided credentials if supplied, or falls back to server-side configured environment tokens.
     """
     source_type = request.type.strip().lower()
@@ -1049,7 +1050,7 @@ async def sync_source(
     background_tasks: BackgroundTasks,
     background: bool = Query(default=True, description="Whether to execute sync as background task."),
     limit: Optional[int] = Query(default=50, ge=1, le=100, description="Maximum records to process."),
-    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_admin),
+    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_team_lead_or_admin),
 ) -> SyncResponse:
     """
     Trigger an evidence sync for a configured knowledge source.
@@ -1263,7 +1264,7 @@ async def list_source_records(
 async def update_source(
     source_id: UUID,
     request: UpdateSourceRequest,
-    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_admin),
+    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_team_lead_or_admin),
 ) -> KnowledgeSourceResponse:
     """
     Update source details, visibility, or soft-archive status.
@@ -1359,3 +1360,91 @@ async def update_source(
         updated_at=updated_row["updated_at"],
         record_count=rec_count,
     )
+
+
+@router.delete("/{source_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_source(
+    source_id: UUID,
+    context: tuple[AuthenticatedUser, ActiveOrganization] = Depends(require_team_lead_or_admin),
+) -> None:
+    """
+    Permanently delete a knowledge source and all its associated records, versions,
+    chunks, and relationships in atomic dependency order.
+    Requires administrator or team lead privileges.
+    """
+    user, org = context
+
+    async with transaction_context(user_id=user.id, org_id=org.org_id) as conn:
+        # Verify source exists in caller's organization
+        source = await conn.fetchrow(
+            "SELECT id, name FROM public.sources WHERE id = $1 AND org_id = $2",
+            source_id,
+            org.org_id,
+        )
+        if not source:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Source {source_id} not found in this organization.",
+            )
+
+        # Get all records associated with this source
+        rec_rows = await conn.fetch(
+            "SELECT id FROM public.records WHERE source_id = $1 AND org_id = $2",
+            source_id,
+            org.org_id,
+        )
+        rec_ids = [r["id"] for r in rec_rows]
+
+        if rec_ids:
+            # 1. Clean up knowledge note links
+            await conn.execute(
+                "DELETE FROM public.knowledge_note_records WHERE record_id = ANY($1::uuid[]) AND org_id = $2",
+                rec_ids,
+                org.org_id,
+            )
+
+            # 2. Clean up record links
+            await conn.execute(
+                """
+                DELETE FROM public.record_links
+                WHERE (from_record_id = ANY($1::uuid[]) OR to_record_id = ANY($1::uuid[]))
+                  AND org_id = $2
+                """,
+                rec_ids,
+                org.org_id,
+            )
+
+            # 3. Clean up chunks (or will cascade from versions)
+            await conn.execute(
+                "DELETE FROM public.chunks WHERE source_id = $1 AND org_id = $2",
+                source_id,
+                org.org_id,
+            )
+
+            # 4. Clean up record versions
+            await conn.execute(
+                "DELETE FROM public.record_versions WHERE source_id = $1 AND org_id = $2",
+                source_id,
+                org.org_id,
+            )
+
+            # 5. Clean up records
+            await conn.execute(
+                "DELETE FROM public.records WHERE source_id = $1 AND org_id = $2",
+                source_id,
+                org.org_id,
+            )
+
+        # 6. Clean up access grants
+        await conn.execute(
+            "DELETE FROM public.source_access_grants WHERE source_id = $1 AND org_id = $2",
+            source_id,
+            org.org_id,
+        )
+
+        # 7. Delete the source row
+        await conn.execute(
+            "DELETE FROM public.sources WHERE id = $1 AND org_id = $2",
+            source_id,
+            org.org_id,
+        )
