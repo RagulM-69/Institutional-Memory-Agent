@@ -175,7 +175,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="flex h-screen bg-neutral-50/60 font-sans antialiased text-neutral-900 overflow-hidden">
+    <div className="flex h-screen bg-[#fcfcfc] font-sans antialiased text-neutral-900 overflow-hidden">
       {/* Sidebar */}
       <AppSidebar
         currentPath="/settings"
@@ -188,10 +188,11 @@ export default function SettingsPage() {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#fcfcfc]">
         <AppHeader
           user={user}
           org={org}
+          title="App Settings"
           onOpenSidebar={() => setIsSidebarOpen(true)}
           onSignIn={() => setIsAuthModalOpen(true)}
           onSignOut={handleSignOut}
@@ -780,3 +781,4 @@ export default function SettingsPage() {
     </div>
   );
 }
+

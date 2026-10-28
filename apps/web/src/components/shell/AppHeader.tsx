@@ -12,6 +12,7 @@ import { ActiveOrganization, AuthenticatedUser } from "@/lib/types";
 interface AppHeaderProps {
   user: AuthenticatedUser | null;
   org: ActiveOrganization | null;
+  title?: string;
   apiOnline?: boolean | null;
   onOpenSidebar?: () => void;
   onToggleSidebar?: () => void;
@@ -23,6 +24,7 @@ interface AppHeaderProps {
 export function AppHeader({
   user,
   org,
+  title = "Ask Knowledge",
   apiOnline = null,
   onOpenSidebar,
   onToggleSidebar,
@@ -50,7 +52,7 @@ export function AppHeader({
           </span>
           <span className="text-neutral-300 hidden sm:inline">/</span>
           <h1 className="font-semibold text-neutral-900 text-sm">
-            Ask Knowledge
+            {title}
           </h1>
           {apiOnline !== null && (
             <span
