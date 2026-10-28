@@ -130,7 +130,16 @@ export function AppSidebar({
     window.location.href = "/";
   };
 
-  const navItems = [
+  interface NavItem {
+    name: string;
+    href: string;
+    icon: React.ComponentType<{ className?: string }>;
+    isActive: boolean;
+    enabled: boolean;
+    badge?: string;
+  }
+
+  const navItems: NavItem[] = [
     {
       name: "Ask Knowledge",
       href: "/",
@@ -171,8 +180,7 @@ export function AppSidebar({
       href: "/settings",
       icon: Settings,
       isActive: currentPath === "/settings",
-      badge: "Soon",
-      enabled: false,
+      enabled: true,
     },
   ];
 
